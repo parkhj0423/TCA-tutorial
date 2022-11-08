@@ -12,7 +12,23 @@ import ComposableArchitecture
 struct TCA_TutorialApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView(store: Store(initialState: AppState(), reducer: appReducer, environment: AppEnvironment()))
+            ContentView(store: Store(initialState: AppState(todos: [
+                Todo(
+                    id: UUID(),
+                    description: "Milk",
+                    isComplete: false
+                ),
+                Todo(
+                    id: UUID(),
+                    description: "Eggs",
+                    isComplete: false
+                ),
+                Todo(
+                    id: UUID(),
+                    description: "Hand Soap",
+                    isComplete: false
+                ),
+            ]), reducer: appReducer, environment: AppEnvironment()))
         }
     }
 }
