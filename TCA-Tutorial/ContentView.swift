@@ -51,7 +51,7 @@ struct AppEnvironment {
 
 let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
     todoReducer.forEach(
-        state: \AppState.todos,
+        state: \.todos,
         action: /AppAction.todo(index:action:),
         environment: { _ in TodoEnvironment() }
     ),
@@ -60,6 +60,8 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
         case .addButtonTapped:
             state.todos.insert(Todo(id: UUID()), at: 0)
             return .none
+//        case .todo(index:action:):
+//        case .todo(index: _, action: _):
         case .todo(index: let index, action: let action):
             return .none
         }
@@ -87,6 +89,7 @@ struct ContentView: View {
             WithViewStore(self.store) { viewStore in
                 List {
                     // swift 5.2에서 사용가능한 클로져 축약 문법
+                    // 클로져 인자가 1개일때 KeyPath로 접근 가능
                     ForEachStore(
                         self.store.scope(
                             state: \.todos,
