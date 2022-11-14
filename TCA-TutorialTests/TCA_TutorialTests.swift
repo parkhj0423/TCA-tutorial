@@ -6,30 +6,102 @@
 //
 
 import XCTest
+import ComposableArchitecture
+@testable import TCA_Tutorial
 
 final class TCA_TutorialTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    func testCompletingTodo() {
+        let store = TestStore(
+            initialState: AppState(
+                todos: [
+                    Todo(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+                        description: "Milk",
+                        isComplete: false
+                    )
+                ]
+            ),
+            reducer: appReducer,
+            environment: AppEnvironment(uuid: { UUID(uuidString: "abcd-efgh")! })
+        )
+        
+        store.assert(
+            .send(.todo(index: 0, action: .checkboxTapped)) {
+                $0.todos[0].isComplete = true
+            }
+        )
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+    func testAddTodo() {
+        let store = TestStore(
+            initialState: AppState(),
+            reducer: appReducer,
+            environment: AppEnvironment(
+                uuid: { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-DEADBEEFDEAD")! }
+            )
+        )
+        
+        store.assert(
+            .send(.addButtonTapped) {
+                $0.todos = [
+                    Todo(
+                        id: UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-DEADBEEFDEAD")!,
+                        description: "",
+                        isComplete: false
+                    )
+                ]
+            }
+        )
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    
+    func testTodoSorting() {
+        let store = TestStore(
+            initialState: AppState(
+                todos: [
+                    Todo(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+                        description: "Milk",
+                        isComplete: false
+                    ),
+                    Todo(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+                        description: "Eggs",
+                        isComplete: false
+                    )
+                ]
+            ),
+            reducer: appReducer,
+            environment: AppEnvironment(
+                uuid: { fatalError("unimplemented") }
+            )
+        )
+        
+        store.assert(
+            .send(.todo(index: 0, action: .checkboxTapped)) {
+                $0.todos[0].isComplete = true
+                //        $0.todos = [
+                //          $0.todos[1],
+                //          $0.todos[0],
+                //        ]
+                $0.todos.swapAt(0, 1)
+                
+                //        $0.todos = [
+                //          Todo(
+                //            description: "Eggs",
+                //            id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+                //            isComplete: false
+                //          ),
+                //
+                //          Todo(
+                //            description: "Milk",
+                //            id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+                //            isComplete: true
+                //          ),
+                //        ]
+                
+            }
+        )
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
-
+    
 }
