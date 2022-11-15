@@ -16,7 +16,7 @@ final class TCA_TutorialTests: XCTestCase {
             initialState: AppState(
                 todos: [
                     Todo(
-                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+                        id: UUID(uuidString: "abcd-efgh")!,
                         description: "Milk",
                         isComplete: false
                     )
@@ -35,10 +35,10 @@ final class TCA_TutorialTests: XCTestCase {
     
     func testAddTodo() {
         let store = TestStore(
-            initialState: AppState(),
+            initialState: AppState(todos: []),
             reducer: appReducer,
             environment: AppEnvironment(
-                uuid: { UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-DEADBEEFDEAD")! }
+                uuid: { UUID(uuidString: "abcd-efgh")! }
             )
         )
         
@@ -46,7 +46,7 @@ final class TCA_TutorialTests: XCTestCase {
             .send(.addButtonTapped) {
                 $0.todos = [
                     Todo(
-                        id: UUID(uuidString: "DEADBEEF-DEAD-BEEF-DEAD-DEADBEEFDEAD")!,
+                        id: UUID(uuidString: "abcd-efgh")!,
                         description: "",
                         isComplete: false
                     )
