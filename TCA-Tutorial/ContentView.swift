@@ -7,6 +7,7 @@
 
 import SwiftUI
 import ComposableArchitecture
+import Combine
 
 struct Todo : Equatable, Identifiable {
     let id : UUID
@@ -47,6 +48,8 @@ enum AppAction : Equatable {
 }
 
 struct AppEnvironment {
+    var mainQueue : AnySchedulerOf<DispatchQueue>
+//    var mainQueue : AnyScheduler<DispatchQueue.SchedulerTimeType, DispatchQueue.SchedulerOptions>
     var uuid : () -> UUID
 }
 
@@ -68,26 +71,37 @@ let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
             // 이렇게 되면 외부에서 실수로 해당 블록의 Publisher를 Cancel해버리는 경우가 발생하지 않음
             struct CancelDelayId : Hashable {}
             
+            //MARK: Solution 1
             
-//            // 1. todo Action의 checkboxTapped Action이 들어왔을 경우
-//            return .concatenate(
-//                // 2. concatenate Operator로 "completion effect"의 값을 가진 Publisher가 존재할 경우 Cancel 시키고,
-//                Effect.cancel(id: "completion effect"),
-//                // 3. 새로운 Publisher를 동작 시킨다.
-//                Effect(value: AppAction.todoDelayCompleted)
-//                    .delay(for: 1, scheduler: DispatchQueue.main)
-//                    .eraseToEffect()
-//                // cancellable은 같은 Action이 여러번 반복 되었을때 발생하는 문제를 방지하기 위함
-//                    .cancellable(id: "completion effect")
-//            )
+            //            // 1. todo Action의 checkboxTapped Action이 들어왔을 경우
+            //            return .concatenate(
+            //                // 2. concatenate Operator로 "completion effect"의 값을 가진 Publisher가 존재할 경우 Cancel 시키고,
+            //                Effect.cancel(id: "completion effect"),
+            //                // 3. 새로운 Publisher를 동작 시킨다.
+            //                Effect(value: AppAction.todoDelayCompleted)
+            //                    .delay(for: 1, scheduler: DispatchQueue.main)
+            //                    .eraseToEffect()
+            //                // cancellable은 같은 Action이 여러번 반복 되었을때 발생하는 문제를 방지하기 위함
+            //                    .cancellable(id: "completion effect")
+            //            )
             
+            //MARK: Solution 2
             /// .concatenate Operator를 사용하지 않고, cancellable의 cancelInFlight 값을 true로 줘 같은 기능을 하게 할 수 있음
             
+            //            return Effect(value: AppAction.todoDelayCompleted)
+            //                .delay(for: 1, scheduler: DispatchQueue.main)
+            //                .eraseToEffect()
+            //            // cancellable은 같은 Action이 여러번 반복 되었을때 발생하는 문제를 방지하기 위함
+            //                .cancellable(id: CancelDelayId(), cancelInFlight : true)
+            
+            //MARK: Solution 3
+            //            return Effect(value: AppAction.todoDelayCompleted)
+            //                .debounce(id: CancelDelayId(), for: 1, scheduler: DispatchQueue.main)
+            //
+            
+            //MARK: Solution 4
             return Effect(value: AppAction.todoDelayCompleted)
-                .delay(for: 1, scheduler: DispatchQueue.main)
-                .eraseToEffect()
-            // cancellable은 같은 Action이 여러번 반복 되었을때 발생하는 문제를 방지하기 위함
-                .cancellable(id: CancelDelayId(), cancelInFlight : true)
+                .debounce(id: CancelDelayId(), for: 1, scheduler: environment.mainQueue)
             
             
         case .todo(index: let index, action: let action):
@@ -254,6 +268,7 @@ struct ContentView_Previews: PreviewProvider {
                         ),
                               reducer: appReducer,
                               environment: AppEnvironment(
+                                mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
                                 uuid: UUID.init
                               )))
     }

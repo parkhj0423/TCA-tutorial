@@ -28,7 +28,10 @@ struct TCA_TutorialApp: App {
                     description: "Hand Soap",
                     isComplete: false
                 ),
-            ]), reducer: appReducer, environment: AppEnvironment(uuid: UUID.init)))
+            ]), reducer: appReducer,
+                                     environment: AppEnvironment(
+                                        mainQueue : DispatchQueue.main.eraseToAnyScheduler(),
+                                        uuid: UUID.init)))
         }
     }
 }
